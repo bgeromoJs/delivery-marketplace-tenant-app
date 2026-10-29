@@ -9,12 +9,15 @@ import com.deliveryplatform.cliente.data.api.CardDto
 import com.deliveryplatform.cliente.data.api.CardRequest
 import com.deliveryplatform.cliente.data.api.CreateOrderRequest
 import com.deliveryplatform.cliente.data.api.CustomerProfile
+import com.deliveryplatform.cliente.data.api.CustomerStoreDto
 import com.deliveryplatform.cliente.data.api.DishDto
 import com.deliveryplatform.cliente.data.api.GoogleLoginRequest
+import com.deliveryplatform.cliente.data.api.LinkStoreRequest
 import com.deliveryplatform.cliente.data.api.LoginRequest
 import com.deliveryplatform.cliente.data.api.OrderAvailability
 import com.deliveryplatform.cliente.data.api.OrderDto
 import com.deliveryplatform.cliente.data.api.RegisterRequest
+import com.deliveryplatform.cliente.data.api.TenantSummary
 import com.deliveryplatform.cliente.data.api.TenantTheme
 import com.deliveryplatform.cliente.data.api.UpdateProfileRequest
 
@@ -38,12 +41,15 @@ class AuthRepository(private val api: ApiService, private val session: SessionSt
 
 class StoreRepository(private val api: ApiService) {
     suspend fun theme(slug: String): TenantTheme = api.theme(slug)
+    suspend fun tenants(): List<TenantSummary> = api.tenants()
     suspend fun dishes(tenantId: String, tags: String?): List<DishDto> =
         api.dishes(tenantId, availableOnly = true, tags = tags)
 }
-
 class CustomerRepository(private val api: ApiService) {
     suspend fun profile(): CustomerProfile = api.profile()
+    suspend fun stores(): List<CustomerStoreDto> = api.customerStores()
+    suspend fun linkStore(slug: String): CustomerStoreDto = api.linkStore(LinkStoreRequest(slug))
+    suspend fun unlinkStore(slug: String) = api.unlinkStore(slug)
     suspend fun updateProfile(body: UpdateProfileRequest): CustomerProfile = api.updateProfile(body)
     suspend fun addresses(): List<AddressDto> = api.addresses()
     suspend fun createAddress(body: AddressRequest): AddressDto = api.createAddress(body)

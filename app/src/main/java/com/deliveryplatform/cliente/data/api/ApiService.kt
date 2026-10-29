@@ -16,6 +16,10 @@ interface ApiService {
     @GET("tenants/{slug}/theme")
     suspend fun theme(@Path("slug") slug: String): TenantTheme
 
+    /** Lista de lojas do ambiente; usada pelo seletor de loja no build debug. */
+    @GET("tenants")
+    suspend fun tenants(): List<TenantSummary>
+
     @GET("catalog/tenants/{tenantId}/dishes")
     suspend fun dishes(
         @Path("tenantId") tenantId: String,
@@ -34,6 +38,15 @@ interface ApiService {
 
     @GET("customers/me")
     suspend fun profile(): CustomerProfile
+
+    @GET("customers/me/stores")
+    suspend fun customerStores(): List<CustomerStoreDto>
+
+    @POST("customers/me/stores")
+    suspend fun linkStore(@Body body: LinkStoreRequest): CustomerStoreDto
+
+    @DELETE("customers/me/stores/{slug}")
+    suspend fun unlinkStore(@Path("slug") slug: String)
 
     @PUT("customers/me")
     suspend fun updateProfile(@Body body: UpdateProfileRequest): CustomerProfile

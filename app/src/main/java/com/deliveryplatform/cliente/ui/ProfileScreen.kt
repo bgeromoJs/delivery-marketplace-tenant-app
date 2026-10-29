@@ -66,6 +66,9 @@ fun ProfileScreen(
     onSaveCard: (CardRequest) -> Unit,
     onDeleteCard: (String) -> Unit,
     onDefaultCard: (String) -> Unit,
+    onOpenStores: () -> Unit,
+    onOpenStore: (String) -> Unit,
+    onUnlinkStore: (String) -> Unit,
     onLogout: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -159,6 +162,30 @@ fun ProfileScreen(
         }
 
         item {
+            SectionTitle("Meus estabelecimentos") {
+                TextButton(onClick = onOpenStores) { Text("Gerenciar") }
+            }
+        }
+
+        if (state.stores.isEmpty()) {
+            item {
+                EmptyState(
+                    title = "Nenhuma loja salva",
+                    description = "Abra o app pelo link da loja ou toque em Adicionar para colar o link.",
+                )
+            }
+        } else {
+            items(state.stores, key = { it.id }) { store ->
+                StoreLinkItem(
+                    name = state.storeThemes[store.slug]?.name ?: store.name ?: store.slug,
+                    slug = store.slug,
+                    onOpen = { onOpenStore(store.slug) },
+                    onRemove = { onUnlinkStore(store.slug) },
+                )
+            }
+        }
+
+        item {
             SectionTitle("Endereços") {
                 TextButton(onClick = {
                     editingAddress = null
@@ -246,6 +273,33 @@ fun ProfileScreen(
                 cardDialogOpen = false
             },
         )
+    }
+}
+
+@Composable
+private fun StoreLinkItem(
+    name: String,
+    slug: String,
+    onOpen: () -> Unit,
+    onRemove: () -> Unit,
+) {
+    Surface(
+        color = Color.White,
+        shape = RoundedCornerShape(14.dp),
+        border = BorderStroke(1.dp, Border),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            modifier = Modifier.padding(start = 14.dp, top = 10.dp, bottom = 10.dp, end = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(name, fontWeight = FontWeight.SemiBold)
+                Text(slug, style = MaterialTheme.typography.bodySmall, color = Muted)
+            }
+            TextButton(onClick = onOpen) { Text("Abrir") }
+            TextButton(onClick = onRemove) { Text("Remover", color = Muted) }
+        }
     }
 }
 

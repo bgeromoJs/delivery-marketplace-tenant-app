@@ -76,6 +76,7 @@ fun AppTextField(
     password: Boolean = false,
     keyboardType: KeyboardType = KeyboardType.Text,
     enabled: Boolean = true,
+    trailingIcon: (@Composable () -> Unit)? = null,
 ) {
     OutlinedTextField(
         value = value,
@@ -87,6 +88,7 @@ fun AppTextField(
         shape = RoundedCornerShape(12.dp),
         visualTransformation = if (password) PasswordVisualTransformation() else VisualTransformation.None,
         keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = keyboardType),
+        trailingIcon = trailingIcon,
     )
 }
 

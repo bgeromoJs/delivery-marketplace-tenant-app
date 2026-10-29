@@ -88,11 +88,22 @@ fun CartScreen(
     LaunchedEffect(state.cart.size, state.theme?.tenantId) {
         if (state.cart.isEmpty()) {
             availability = null
+            pickedWindow = null
             return@LaunchedEffect
         }
         loadingWindows = true
         availability = loadAvailability()
         loadingWindows = false
+    }
+
+    // Mantem uma janela valida selecionada: prefere a recomendada pela cozinha.
+    LaunchedEffect(availability) {
+        val windows = availability?.windows.orEmpty()
+        val current = pickedWindow
+        if (current == null || windows.none { it == current && it.available }) {
+            pickedWindow = windows.firstOrNull { it.available && it.recommended }
+                ?: windows.firstOrNull { it.available }
+        }
     }
 
     val address = state.addresses.firstOrNull { it.id == selectedAddressId } ?: state.defaultAddress
@@ -226,11 +237,18 @@ fun CartScreen(
                 }
 
                 if (scheduleLater) {
-                    val windows = availability?.windows.orEmpty()
+                    val allWindows = availability?.windows.orEmpty()
+                    val windows = allWindows.filter { it.available }
                     when {
                         loadingWindows -> Text("Consultando a agenda da cozinha...", style = MaterialTheme.typography.bodySmall, color = Muted)
-                        windows.isEmpty() -> Text(
+                        allWindows.isEmpty() -> Text(
                             "Não há janelas disponíveis para estes itens. Tente outra combinação ou peça para agora.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Danger,
+                        )
+                        windows.isEmpty() -> Text(
+                            "As janelas deste dia já estão com a cozinha cheia para este pedido. " +
+                                "Escolha outro dia ou peça para agora.",
                             style = MaterialTheme.typography.bodySmall,
                             color = Danger,
                         )
@@ -243,11 +261,27 @@ fun CartScreen(
                             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 items(windows) { window ->
                                     ChoiceChip(
-                                        label = "${windowDateLabel(window.date)} · ${window.window}",
+                                        label = buildString {
+                                            if (window.recommended) append("Recomendado · ")
+                                            append("${windowDateLabel(window.date)} · ${window.window}")
+                                        },
                                         selected = pickedWindow == window,
                                         onClick = { pickedWindow = window },
                                     )
                                 }
+                            }
+                            pickedWindow?.takeIf { it.available }?.let { chosen ->
+                                Text(
+                                    buildString {
+                                        append("Encaixe das ${clockLabel(chosen.availableStart ?: chosen.start)}")
+                                        append(" às ${clockLabel(chosen.availableEnd ?: chosen.end)}")
+                                        if (chosen.remainingMinutes > 0) {
+                                            append(" · ${chosen.remainingMinutes} min livres na janela")
+                                        }
+                                    },
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Muted,
+                                )
                             }
                         }
                     }
@@ -401,3 +435,9 @@ private fun SummaryRow(label: String, value: String, bold: Boolean = false) {
 
 private fun windowDateLabel(date: String): String =
     runCatching { LocalDate.parse(date).format(windowDateFormat) }.getOrDefault(date)
+
+private fun clockLabel(iso: String?): String {
+    if (iso.isNullOrBlank()) return "--:--"
+    val time = if (iso.contains("T")) iso.substringAfter("T") else iso
+    return time.take(5)
+}

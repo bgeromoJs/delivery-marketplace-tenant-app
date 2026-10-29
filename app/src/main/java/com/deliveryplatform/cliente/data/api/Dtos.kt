@@ -29,14 +29,36 @@ data class AuthResponse(
     val user: UserDto,
 )
 
+data class TenantSummary(
+    val id: String,
+    val name: String,
+    val slug: String,
+)
+
+/**
+ * Loja vinculada ao cliente pelo link do estabelecimento.
+ * `name`/`logoUrl` são o retrato gravado no vínculo; a UI usa o tema ao vivo quando disponível.
+ */
+data class CustomerStoreDto(
+    val id: String,
+    val slug: String,
+    val tenantId: String? = null,
+    val name: String? = null,
+    val logoUrl: String? = null,
+    val createdAt: String? = null,
+)
+
+data class LinkStoreRequest(val slug: String)
+
 data class TenantTheme(
     val tenantId: String,
     val name: String,
     val slug: String,
     val logoUrl: String? = null,
     val bannerUrl: String? = null,
-    val primaryColor: String = "#D9480F",
-    val secondaryColor: String = "#B83A0A",
+    // Lojas antigas podem ter tema nulo no banco; a UI aplica o fallback da marca.
+    val primaryColor: String? = null,
+    val secondaryColor: String? = null,
     val deliveryFee: Double? = 0.0,
     val deliveryTimeMin: Int? = 40,
     val address: String? = null,
@@ -76,6 +98,16 @@ data class AvailabilityWindow(
     val window: String,
     val start: String? = null,
     val end: String? = null,
+    /** Início do encaixe possível para este pedido dentro da janela. */
+    val availableStart: String? = null,
+    /** Fim do encaixe possível para este pedido dentro da janela. */
+    val availableEnd: String? = null,
+    /** Minutos de cozinha ainda livres na janela. */
+    val remainingMinutes: Int = 0,
+    /** false quando o esforço do carrinho não cabe mais na janela. */
+    val available: Boolean = true,
+    /** Primeira janela com capacidade; usada como sugestão no checkout. */
+    val recommended: Boolean = false,
 )
 
 data class OrderAvailability(

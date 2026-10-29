@@ -75,6 +75,7 @@ fun MenuScreen(
     onTogglePreferences: () -> Unit,
     onAddToCart: (DishDto, Int, String?, List<DishOption>) -> Unit,
     onOpenCart: () -> Unit,
+    onChangeStore: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val theme = state.theme ?: return
@@ -91,7 +92,7 @@ fun MenuScreen(
             contentPadding = PaddingValues(bottom = 120.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            item { StoreHeader(theme, cartCount = state.cartCount, onOpenCart = onOpenCart) }
+            item { StoreHeader(theme, cartCount = state.cartCount, onOpenCart = onOpenCart, onChangeStore = onChangeStore) }
 
             if (state.profile?.foodPreferences?.isNotEmpty() == true) {
                 item {
@@ -170,7 +171,7 @@ fun MenuScreen(
 }
 
 @Composable
-private fun StoreHeader(theme: TenantTheme, cartCount: Int, onOpenCart: () -> Unit) {
+private fun StoreHeader(theme: TenantTheme, cartCount: Int, onOpenCart: () -> Unit, onChangeStore: () -> Unit) {
     val primary = brandColor(theme.primaryColor)
     val secondary = brandColor(theme.secondaryColor, primary)
     Column {
@@ -223,6 +224,20 @@ private fun StoreHeader(theme: TenantTheme, cartCount: Int, onOpenCart: () -> Un
                             )
                         }
                     }
+                    Surface(
+                        color = Color.White.copy(alpha = 0.22f),
+                        shape = CircleShape,
+                        modifier = Modifier
+                            .padding(start = 6.dp)
+                            .clickable(onClick = onChangeStore),
+                    ) {
+                        Text(
+                            "Trocar",
+                            color = Color.White,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                        )
+                    }
                 }
                 Text(
                     theme.description ?: "Peça agora e receba em casa.",
@@ -247,8 +262,13 @@ private fun StoreHeader(theme: TenantTheme, cartCount: Int, onOpenCart: () -> Un
                     fontWeight = FontWeight.SemiBold,
                 )
             }
+            val deliveryFee = theme.deliveryFee
             Text(
-                "Entrega ${brl(theme.deliveryFee ?: 0.0)}",
+                when {
+                    deliveryFee == null -> "Entrega a combinar"
+                    deliveryFee == 0.0 -> "Entrega grátis"
+                    else -> "Entrega ${brl(deliveryFee)}"
+                },
                 style = MaterialTheme.typography.bodySmall,
                 color = Muted,
             )

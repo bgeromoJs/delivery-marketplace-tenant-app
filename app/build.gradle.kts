@@ -9,18 +9,15 @@ val debugApiBaseUrl = providers.gradleProperty("API_BASE_URL")
     .orElse("http://10.0.2.2:8080/api/")
     .get()
 
-// Slug da loja dona deste APK. Tambem pode chegar por deep link deliveryhub://loja/{slug}.
-val storeSlug = providers.gradleProperty("STORE_SLUG")
-    .orElse("pizzaria-do-joao")
-    .get()
-
+// A loja nao e mais escolhida no build: ela chega pelo link do estabelecimento
+// (deliveryhub://loja/{slug} ou https://.../loja/{slug}) e fica vinculada a conta.
 // Client ID OAuth do Google (tipo Web). Vazio esconde o botao de login Google.
 val googleClientId = providers.gradleProperty("GOOGLE_CLIENT_ID")
     .orElse("")
     .get()
 
-// Nome exibido na gaveta de apps. Cada loja gera seu APK com o proprio STORE_NAME.
-val storeName = providers.gradleProperty("STORE_NAME")
+// Nome exibido na gaveta de apps e na tela de login sem loja vinculada.
+val appName = providers.gradleProperty("APP_NAME")
     .orElse("Delivery")
     .get()
 
@@ -35,9 +32,9 @@ android {
         versionCode = 1
         versionName = "0.1.0"
 
-        buildConfigField("String", "STORE_SLUG", "\"$storeSlug\"")
         buildConfigField("String", "GOOGLE_CLIENT_ID", "\"$googleClientId\"")
-        manifestPlaceholders["appName"] = storeName
+        buildConfigField("String", "APP_NAME", "\"$appName\"")
+        manifestPlaceholders["appName"] = appName
     }
 
     buildTypes {
